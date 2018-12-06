@@ -19,3 +19,7 @@ to
 # Work to be done
 
 Collect data, buffer it out, and send it to the Things Network.
+
+# More information
+
+I've writen a short post regarding this testing code at Workpress: https://primalcortex.wordpress.com/2018/12/06/esp32-ttgo-board-and-nordic-thingy52-sensor-device/

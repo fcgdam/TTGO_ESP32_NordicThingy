@@ -6,7 +6,7 @@ This is still a proof of concept to see how far the ESP32 BLE hardware and softw
 
 The Nordic Thingy Notifications where not working due to this bug: https://github.com/nkolban/ESP32_BLE_Arduino/pull/17
 
-Will the merge is not done to the ESP32 BLE Arduino Library we need to change the BLERemoteDescriptor.cpp file at line 151 to the new line:
+While the merge is not done to the ESP32 BLE Arduino Library we need to change the BLERemoteDescriptor.cpp file at line 151 to the new line:
 
 From:
 

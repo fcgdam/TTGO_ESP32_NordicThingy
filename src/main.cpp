@@ -119,10 +119,6 @@ void setup() {
 
 static void notifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify) {
 
-  //Serial.print((char*)pData);
-  //Serial.println("");
-  display.clear();
-
   BLEUUID bleuuid = pBLERemoteCharacteristic->getUUID();
 
   if ( bleuuid.toString() == temperatureUUID.toString() ) {
@@ -224,6 +220,7 @@ void loop() {
     if (connectToServer(*pServerAddress)) {
       Serial.println("We are now connected to the BLE Server.");
       connected = true;
+      display.clear();
       display.drawString(0,0,"Nordic found!");
       display.display();
     } else {
@@ -236,27 +233,28 @@ void loop() {
   // If connected, we can now show the sensor data
   if ( connected ) {
     // Show the sensed temperature value:
+    display.clear();
     // On display
     display.drawString(0,0, "Temp: ");
     display.drawString(48,0 , String(Temperature) +"º");
     // On Serial
     Serial.println("The temperature is: " + String(Temperature) +"C");
-    display.display();
+
 
     display.drawString(0,10, "Hum: ");
     display.drawString(48,10 , String(Humidity) + "%");
     Serial.println("The Humidity is: " + String(Humidity));
-    display.display();
+
 
     display.drawString(0, 20, "Press: ");
     display.drawString(48,20, String(Pressure) +"hPa");
     Serial.println("The Pressure is: " + String(Pressure) + "hPa");
-    display.display();
+
 
     display.drawString(0, 30, "CO2: ");
     display.drawString(48,30, String(CO2) + "ppm");
     Serial.println("The CO2 is: " + String(CO2));
-    display.display();
+    
 
     display.drawString(0, 40, "TVOC: ");
     display.drawString(48,40, String(TVOC) + "ppb");

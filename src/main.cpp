@@ -46,6 +46,14 @@ static BLERemoteCharacteristic* humidityCharacteristic;
 static BLERemoteCharacteristic* gasCharacteristic;
 //static BLERemoteCharacteristic* buttonCharacteristic;
 
+// Sensor data:
+float  Temperature = 0;
+float  Pressure    = 0;
+int    Humidity    = 0;
+float  CO2         = 0;
+float  TVOC        = 0;
+
+
 /*
    Callback function that gets called, when another device's advertisement has been received
 */
@@ -57,10 +65,6 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
 
       // Check if the device found has the Nordic Thingy52 service available.
       if (advertisedDevice.haveServiceUUID() && advertisedDevice.getServiceUUID().equals(serviceUUID)) {
-        display.clear();
-        display.drawString(0,0,"Nordic Thingy52 found!");
-        display.display();
-
         // Scan can be stopped, we have found what we are looking for
         advertisedDevice.getScan()->stop();
 
@@ -75,6 +79,8 @@ class MyAdvertisedDeviceCallbacks: public BLEAdvertisedDeviceCallbacks {
 
         Serial.println("Nordic Thingy52 found!");
         // We will connect at the loop() function.
+
+        // Do not call display functions here, otherwise, the ESP might crash
       }
     }
 };
@@ -106,8 +112,8 @@ void setup() {
   pBLEScan->setActiveScan(true);
   pBLEScan->start(30);
 
-  display.drawString (0, 0, "BLE Scan!");
-  display.display ();
+  display.drawString(0,0,"BLE scan...");
+  display.display();
 
 } // End of setup.
 
@@ -115,27 +121,34 @@ static void notifyCallback(BLERemoteCharacteristic* pBLERemoteCharacteristic, ui
 
   //Serial.print((char*)pData);
   //Serial.println("");
+  display.clear();
+
   BLEUUID bleuuid = pBLERemoteCharacteristic->getUUID();
 
-  if ( bleuuid.toString() == temperatureUUID.toString() )
-    Serial.print("The temperature is ");
+  if ( bleuuid.toString() == temperatureUUID.toString() ) {
+    Temperature = (float)pData[0] + ((float)pData[1])/100;
+  }
 
-  if ( bleuuid.toString() == pressureUUID.toString() )
-    Serial.print("The pressure is ");
+  if ( bleuuid.toString() == pressureUUID.toString() ) {
+    Pressure = (float)pData[0] + (float)pData[1]*256 + ((float)pData[4])/100;
+  }
 
-  if ( bleuuid.toString() == humidityUUID.toString() )
-    Serial.print("The humidity is ");
+  if ( bleuuid.toString() == humidityUUID.toString() ) {
+    Humidity = (int)pData[0];
+  }
 
-  if ( bleuuid.toString() == gasUUID.toString() )
-    Serial.print("The gas levels are ");
-
+  if ( bleuuid.toString() == gasUUID.toString() ) {
+    CO2  = pData[0] + pData[1]*256;
+    TVOC = pData[2] + pData[3]*256;
+  }
+/*
   for(int i = 0; i < length; i++)
   {
     Serial.print( pData[i] , HEX);
     Serial.print(" ");
   }
   Serial.println();
-
+*/
 }
 
 bool enableCharNotification( BLERemoteService* pRemoteService, BLERemoteCharacteristic* characteristic, BLEUUID characteristicUUID) {
@@ -211,11 +224,45 @@ void loop() {
     if (connectToServer(*pServerAddress)) {
       Serial.println("We are now connected to the BLE Server.");
       connected = true;
+      display.drawString(0,0,"Nordic found!");
+      display.display();
     } else {
       Serial.println("We have failed to connect to the server; there is nothin more we will do.");
     }
     // Reset the flag, so now the loop() doesn't do anything anymore.
     doConnect = false;
+  }
+
+  // If connected, we can now show the sensor data
+  if ( connected ) {
+    // Show the sensed temperature value:
+    // On display
+    display.drawString(0,0, "Temp: ");
+    display.drawString(48,0 , String(Temperature) +"º");
+    // On Serial
+    Serial.println("The temperature is: " + String(Temperature) +"C");
+    display.display();
+
+    display.drawString(0,10, "Hum: ");
+    display.drawString(48,10 , String(Humidity) + "%");
+    Serial.println("The Humidity is: " + String(Humidity));
+    display.display();
+
+    display.drawString(0, 20, "Press: ");
+    display.drawString(48,20, String(Pressure) +"hPa");
+    Serial.println("The Pressure is: " + String(Pressure) + "hPa");
+    display.display();
+
+    display.drawString(0, 30, "CO2: ");
+    display.drawString(48,30, String(CO2) + "ppm");
+    Serial.println("The CO2 is: " + String(CO2));
+    display.display();
+
+    display.drawString(0, 40, "TVOC: ");
+    display.drawString(48,40, String(TVOC) + "ppb");
+    Serial.println("The TVOC is: " + String(TVOC));
+    display.display();
+
   }
 
   delay(1000); // Delay a second between loops.
